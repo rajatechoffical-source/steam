@@ -3,7 +3,6 @@ import hashlib
 import sys
 import psutil
 from keyauth import api
-import winreg
 from Memory import *
 
 app = Flask(__name__)
@@ -146,3 +145,4 @@ def process_command(command):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
+
