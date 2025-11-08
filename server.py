@@ -3,7 +3,7 @@ import hashlib
 import sys
 import psutil
 from keyauth import api
-import winreg
+
 import ctypes
 from Memory import *
 
@@ -160,3 +160,4 @@ def health_check():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
