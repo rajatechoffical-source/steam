@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>LUCIFER Streamer Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-color: #111;
+      color: #eee;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+
+    .panel {
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #90caf9;
+    }
+
+    .status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 8px;
+      background-color: #2e7d32;
+      color: white;
+      font-size: 12px;
+    }
+
+    .section-buttons,
+    .aim-buttons,
+    .tab-buttons,
+    .sniper-buttons,
+    .extra-buttons,
+    .settings-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      background-color: #333;
+      color: #ccc;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid #444;
+      transition: 0.2s;
+      user-select: none;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .button:hover {
+      background-color: #444;
+    }
+
+    .button.active {
+      background-color: #0f5bff;
+      color: white;
+      border-color: #0f5bff;
+    }
+
+    .tab-buttons {
+      display: flex;
+      justify-content: space-around;
+      margin: 10px 0;
+    }
+
+    .tab-buttons .button {
+      flex: 1;
+      text-align: center;
+    }
+
+    .console {
+      background-color: #0d0d0d;
+      border: 1px solid #222;
+      padding: 12px;
+      border-radius: 8px;
+      min-height: 100px;
+      font-family: monospace;
+      color: #90ee90;
+      overflow-y: auto;
+      max-height: 150px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .aim-section,
+    .sniper-section,
+    .extra-section,
+    .settings-section {
+      margin-top: 10px;
+    }
+
+    .aim-row,
+    .sniper-row,
+    .sniper-row2,
+    .sniper-row3,
+    .extra-row,
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .aim-label,
+    .sniper-label,
+    .extra-label,
+    .settings-label {
+      font-size: 14px;
+      margin-bottom: 4px;
+      min-width: 140px;
+    }
+
+    .note {
+      font-size: 12px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    select {
+      padding: 8px;
+      background-color: #222;
+      color: #eee;
+      border: 1px solid #444;
+      border-radius: 8px;
+      min-width: 160px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Hide all content panels by default */
+    .content-panel {
+      display: none;
+    }
+
+    /* Show the active content panel */
+    .content-panel.active {
+      display: block;
+    }
+
+    /* Notifications container (stacked notifications) */
+    #notifications-container {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+      max-width: 320px;
+      pointer-events: none;
+    }
+
+    /* Individual notification style */
+    .notification {
+      background-color: #2e7d32;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(46, 125, 50, 0.7);
+      font-weight: 600;
+      font-size: 14px;
+      user-select: none;
+      pointer-events: auto;
+      opacity: 0;
+      transform: translateX(100%);
+      animation: slideIn 5s forwards, fadeOut 3s forwards 6s;
+
+    }
+
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        transform: translateX(100%);
+      }
+    }
+
+
+    body.light {
+      background-color: #eee;
+      color: #111;
+    }
+
+    body.light .panel {
+      background-color: #fafafa;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+      color: #111;
+    }
+
+    body.light .button {
+      background-color: #ddd;
+      color: #111;
+      border: 1px solid #ccc;
+    }
+
+    body.light .button.active {
+      background-color: #0f5bff;
+      color: white;
+      border-color: #0f5bff;
+    }
+
+    body.light select {
+      background-color: #fff;
+      color: #111;
+      border: 1px solid #ccc;
+    }
+
+    body.blue {
+      background-color: #001f3f;
+      color: #aad4ff;
+    }
+
+    body.blue .panel {
+      background-color: #003366;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+      color: #aad4ff;
+    }
+
+    body.blue .button {
+      background-color: #004080;
+      color: #aad4ff;
+      border: 1px solid #0059b3;
+    }
+
+    body.blue .button.active {
+      background-color: #3399ff;
+      color: white;
+      border-color: #3399ff;
+    }
+
+    body.blue select {
+      background-color: #0059b3;
+      color: #aad4ff;
+      border: 1px solid #3399ff;
+    }
+
+    .display-none {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="panel">
+      <div class="status">
+        <div>
+          <strong>LUCIFER CHEAT </strong><br />
+       LUCIFER STREAMER PANEL
+        </div>
+        <div class="badge">Online</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Free Fire Architecture</h2>
+      <div class="section-buttons" id="architecture-buttons">
+        <div class="button" data-arch="32-bit">32-bit</div>
+        <div class="button active" data-arch="64-bit">64-bit</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="tab-buttons">
+        <div class="button active" data-tab="headshot">Headshot</div>
+        <div class="button" data-tab="sniper">Sniper</div>
+        <div class="button" data-tab="extra">Extra</div>
+        <div class="button" data-tab="settings">Settings</div>
+                <div class="button"data-tab="loder">Loder</div>
+
+      </div>
+    </div>
+
+
+    <div class="panel content-panel active" id="headshot">
+      <h2>Aimbot Options</h2>
+      <div class="aim-section">
+        <div class="aim-row">
+          <div>
+            <div class="aim-label">Scan Enemies</div>
+            <div class="note">Scans enimies in the match</div>
+          </div>
+          <div class="button aim-option" data-group="aim-row" data-value="default" onclick="sendCommand('aimbotscan')">
+            Scan Players</div>
+        </div>
+
+        <div class="aim-row">
+          <div>
+            <div class="aim-label">Aim Position</div>
+            <div class="note">Hotkey - Help</div>
+          </div>
+          <div class="aim-buttons">
+            <div class="button aim-option" data-group="aimpos" data-value="neck" onclick="sendCommand('aimbotenable')">
+              Neck 1</div>
+            <div class="button aim-option active" data-group="aimpos" data-value="default"
+              onclick="sendCommand('aimbotdisable')">Default</div>
+          </div>
+        </div>
+
+        <div class="aim-row">
+          <div>
+            <div class="aim-label">Other Aim Position</div>
+            <div class="note">Hotkey - Help</div>
+          </div>
+          <select id="other-aimpos">
+            <option value="RightShoulder">Right Shoulder</option>
+            <option value="LeftShoulder">Left Shoulder</option>
+          </select>
+        </div>
+
+        <!-- Left Shoulder Section (Initially Hidden) -->
+        <div class="aim-row leftShoulder display-none">
+          <div>
+            <div class="aim-label">Headshot Legit</div>
+            <div class="note">Left Shoulder</div>
+          </div>
+          <div class="aim-buttons">
+            <div class="button aim-option" data-group="headshotlegit" data-value="enable"
+              onclick="sendCommand('leftShoulderOn')">Enable</div>
+            <div class="button aim-option active" data-group="headshotlegit" data-value="disable"
+              onclick="sendCommand('leftShoulderOff')">Disable</div>
+          </div>
+        </div>
+
+        <!-- Right Shoulder Section -->
+        <div class="aim-row rightShoulder">
+          <div>
+            <div class="aim-label">Headshot Legit</div>
+            <div class="note">Right Shoulder</div>
+          </div>
+          <div class="aim-buttons">
+            <div class="button aim-option" data-group="headshotlegit" data-value="enable"
+              onclick="sendCommand('rightShoulderOn')">Enable</div>
+            <div class="button aim-option active" data-group="headshotlegit" data-value="disable"
+              onclick="sendCommand('rightShoulderOff')">Disable</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel content-panel" id="sniper">
+      <h2>Sniper Options</h2>
+      <div class="sniper-section">
+        <div class="sniper-row">
+          <div>
+            <div class="sniper-label">Sniper Load</div>
+            <div class="note">Loads Sniper Scope & Switch</div>
+          </div>
+          <div class="sniper-buttons">
+            <div class="button aim-option" data-group="aim-row" data-value="default"
+              onclick="sendCommand('loadsniper')">Scan Sniper</div>
+          </div>
+        </div>
+        <div class="sniper-row">
+          <div>
+            <div class="sniper-label">Sniper Scope</div>
+            <div class="note">Turn on Sniper Scope</div>
+          </div>
+          <div class="sniper-buttons">
+            <div class="button sniper-option" data-group="autozoom" data-value="on"
+              onclick="sendCommand('sniperscopeenable')">Enable</div>
+            <div class="button sniper-option active" data-group="autozoom" data-value="off"
+              onclick="sendCommand('sniperscopedisable')">Disable</div>
+          </div>
+        </div>
+        <div class="sniper-row">
+          <div>
+            <div class="sniper-label">Sniper Switch</div>
+            <div class="note">Turn on Sniper fast switch</div>
+          </div>
+          <div class="sniper-buttons">
+            <div class="button sniper-option" data-group="dropcomp" data-value="enable"
+              onclick="sendCommand('sniperswitchenable')">Enable</div>
+            <div class="button sniper-option active" data-group="dropcomp" data-value="disable"
+              onclick="sendCommand('sniperswitchdisable')">Disable</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXTRA TAB -->
+    <div class="panel content-panel" id="extra">
+      <h2>Extra Options</h2>
+      <div class="extra-section">
+        <div class="extra-row">
+          <div>
+            <div class="extra-label">Chams 3D</div>
+            <div class="note">Press Del to remove.</div>
+          </div>
+          <div class="extra-buttons">
+            <div class="button extra-option" data-group="chams3d" data-value="on" onclick="sendCommand('chams3d')">
+              Enable</div>
+          </div>
+        </div>
+        <div class="extra-row">
+          <div>
+            <div class="extra-label">Chams Menu</div>
+            <div class="note">Press Insert to hide/unhide</div>
+          </div>
+          <div class="extra-buttons">
+            <div class="button extra-option" data-group="chamsmenu" data-value="on" onclick="sendCommand('chamsmenu')">
+              Enable</div>
+          </div>
+        </div>
+        <div class="extra-row">
+          <div>
+            <div class="extra-label">Chams 3D Box</div>
+            <div class="note">Press Del to remove.</div>
+          </div>
+          <div class="extra-buttons">
+            <div class="button extra-option" data-group="box3d" data-value="on" onclick="sendCommand('box3d')">Enable
+            </div>
+          </div>
+        </div>
+        <div class="extra-row">
+          <div>
+            <div class="extra-label">No Recoil</div>
+            <div class="note">Remove weapon recoil</div>
+          </div>
+          <div class="extra-buttons">
+            <div class="button extra-option" data-group="norecoil" data-value="on"
+              onclick="sendCommand('removerecoil')">On</div>
+            <div class="button extra-option active" data-group="norecoil" data-value="off"
+              onclick="sendCommand('addrecoil')">Off</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div class="panel content-panel" id="settings">
+      <h2>Settings</h2>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Theme Selector</div>
+            <select id="theme-selector">
+              <option value="dark" selected>Dark</option>
+              <option value="light">Light</option>
+              <!-- <option value="blue">Blue</option> -->
+            </select>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Hotkeys</div>
+            <div class="note">No Hotkey Feature yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    
+ <!-- Loder TAB -->
+<div class="panel content-panel" id="loder">
+  <h2>Settings</h2>
+
+  <a href="https://www.google.com" target="_blank">
+    <button style="
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    ">
+      Download Loader
+    </button>
+  </a>
+</div>
+
+
+    <div class="panel">
+      <h2>Console</h2>
+      <div class="console" id="console"></div>
+    </div>
+  </div>
+
+  <div id="notifications-container"></div>
+
+  <script>
+    (() => {
+      const consoleEl = document.getElementById('console');
+      const notificationsContainer = document.getElementById('notifications-container');
+
+      function log(message) {
+        const now = new Date();
+        const time = now.toLocaleTimeString();
+        consoleEl.textContent += `[${time}] ${message}\n`;
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+      }
+
+      function showNotification(message) {
+        const notif = document.createElement('div');
+        notif.className = 'notification';
+        notif.textContent = message;
+        notificationsContainer.appendChild(notif);
+
+        notif.addEventListener('animationend', () => {
+          notificationsContainer.removeChild(notif);
+        });
+      }
+      
+      async function checkStatus() {
+    try {
+      const res = await fetch('/status');
+      const data = await res.json();
+      const badge = document.querySelector('.badge');
+
+      if (data.status === 'online') {
+        badge.textContent = 'Online';
+        badge.style.backgroundColor = '#2e7d32'; // green
+      } else {
+        badge.textContent = 'Offline';
+        badge.style.backgroundColor = '#b71c1c'; // red
+      }
+    } catch (err) {
+      console.error("Status check failed:", err);
+    }
+  }
+
+  // Check status every 3 seconds
+  setInterval(checkStatus, 3000);
+  checkStatus();
+
+      // Generic toggle button group helper for buttons inside container by data-group
+      function setupToggleButtons(containerSelector) {
+        const container = document.querySelector(containerSelector);
+        if (!container) return;
+        container.querySelectorAll('.button').forEach(button => {
+          button.addEventListener('click', () => {
+            const group = button.dataset.group;
+            if (!group) return;  // skip if no data-group
+
+            if (button.classList.contains('active')) return; // already active
+
+            // Remove active class from siblings with same data-group
+            container.querySelectorAll(`.button.active[data-group="${group}"]`).forEach(btn => {
+              btn.classList.remove('active');
+            });
+
+            // Add active to clicked button
+            button.classList.add('active');
+
+            // Log and notify
+            const value = button.dataset.value || "(unknown)";
+            // log(`${group} set to: ${value}`);
+            // showNotification(`${group} set to: ${value}`);
+          });
+        });
+      }
+
+      // Setup architecture buttons separately (they use data-arch)
+      function setupArchitectureButtons() {
+        const container = document.getElementById('architecture-buttons');
+        if (!container) return;
+        const buttons = container.querySelectorAll('.button');
+        buttons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (btn.classList.contains('active')) return;
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const arch = btn.dataset.arch || "(unknown)";
+            log(`Architecture set to: ${arch}`);
+            showNotification(`Architecture set to ${arch}`);
+          });
+        });
+      }
+
+
+
+
+      const tabButtons = document.querySelectorAll('.tab-buttons .button');
+      const contentPanels = document.querySelectorAll('.content-panel');
+
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const tab = button.getAttribute('data-tab');
+
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+
+          contentPanels.forEach(panel => {
+            if (panel.id === tab) panel.classList.add('active');
+            else panel.classList.remove('active');
+          });
+        });
+      });
+
+      // Architecture buttons switching
+      const archButtons = document.querySelectorAll('#architecture-buttons .button');
+      archButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          archButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          log(`Architecture selected: ${btn.textContent}`);
+        });
+      });
+
+      // Function to send command to backend
+      window.sendCommand = function (command) {
+        // log(`Sending command: ${command}`);
+
+        if (command == "aimbotscan") {
+          log(`Initializing Aimbot.`);
+        }
+        else if (command == "loadsniper") {
+          log(`Initializing Sniper Functions.`)
+        }
+        else if (command == "removerecoil") {
+          log(`Removing Recoil.`)
+        }
+        else if (command == "addrecoil") {
+          log(`Restoring Recoil.`)
+        }
+
+        fetch('/execute', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ command }),
+        })
+          .then(response => {
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
+            return response.json();
+          })
+          .then(data => {
+            if (data.message) {
+              log(`${data.message}`);
+              // showNotification(`Command executed: ${command}`);
+            } else {
+              log(`Failed`);
+            }
+          })
+          .catch(err => {
+            log(`Error: ${err.message}`);
+            showNotification(`Error.`);
+          });
+      };
+
+      // Example: add click feedback for all buttons with .button class that call sendCommand
+      document.querySelectorAll('.button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          // You could add button active toggle logic here if needed
+        });
+      });
+
+      // Run setups on page load
+      setupArchitectureButtons();
+
+      // Setup toggles for various button groups inside respective panels
+      setupToggleButtons('#headshot .aim-section');
+      setupToggleButtons('#sniper .sniper-section');
+      setupToggleButtons('#extra .extra-section');
+      setupToggleButtons('#settings .settings-section');
+
+      // Setup theme selector
+      const themeSelector = document.getElementById('theme-selector');
+      themeSelector.addEventListener('change', () => {
+        document.body.className = themeSelector.value;  // apply class 'dark', 'light', or 'blue'
+        log(`Theme changed to: ${themeSelector.value}`);
+        showNotification(`Theme changed to: ${themeSelector.value}`);
+      });
+
+    })();
+  </script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    
+    const select = document.getElementById('other-aimpos');
+    const leftShoulder = document.querySelector('.leftShoulder');
+    const rightShoulder = document.querySelector('.rightShoulder');
+
+    select.addEventListener('change', function () {
+      const selectedValue = select.value;  // Get the value of the selected option
+
+      // Check if "LeftShoulder" is selected and hide/show sections accordingly
+      if (selectedValue === 'LeftShoulder') {
+        leftShoulder.classList.remove('display-none');
+        rightShoulder.classList.add('display-none');
+      } else if (selectedValue === 'RightShoulder') {
+        leftShoulder.classList.add('display-none');
+        rightShoulder.classList.remove('display-none');
+      }
+    });
+  });
+</script>
+
+
+
+</body>
+
+</html>
